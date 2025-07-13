@@ -4,7 +4,8 @@ import os
 import matplotlib.pyplot as plt
 
 
-LOG_FILE = "../Game/config/highscores.csv"
+LOG_FILE = os.path.join(os.path.dirname(__file__), "../Game/config/highscores.csv")
+LOG_FILE = os.path.abspath(LOG_FILE)
 def log_game_result(score: int, rounds: int):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     new_row = [timestamp, rounds, score]
