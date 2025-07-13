@@ -6,6 +6,8 @@ class LyricGameGUI:
     def __init__(self, root):
         self.root = root
         self.root.title("Finish the Lyric")
+        self.score = 0
+        self.rounds_played = 0
 
         self.current_lyric = None
 
@@ -14,6 +16,13 @@ class LyricGameGUI:
 
         self.entry = tk.Entry(root, width=50, font=("Arial", 12))
         self.entry.pack(pady=10)
+
+        # Score display
+        self.score_label = tk.Label(root, text="Score: 0", font=("Arial", 12))
+        self.score_label.pack()
+
+        self.round_label = tk.Label(root, text="Rounds: 0", font=("Arial", 12))
+        self.round_label.pack()
 
         self.submit_button = tk.Button(root, text="Submit Guess", command=self.submit_guess)
         self.submit_button.pack(pady=5)
@@ -25,11 +34,23 @@ class LyricGameGUI:
         self.current_lyric = get_random_lyric()
         self.lyric_label.config(text=self.current_lyric['lyric_snippet'])
         self.entry.delete(0, tk.END)
+        self.update_score_labels()
 
     def submit_guess(self):
         user_guess = self.entry.get()
         correct_answer = self.current_lyric['next_line']
+
         if check_guess(user_guess, correct_answer):
+            self.score += 5
             messagebox.showinfo("Result", "Correct!")
         else:
             messagebox.showwarning("Result", f"Incorrect. The correct answer was:\n\n{correct_answer}")
+
+        self.rounds_played += 1
+        self.update_score_labels()
+
+    def update_score_labels(self):
+        self.score_label.config(text=f"Score: {self.score}")
+        self.round_label.config(text=f"Rounds: {self.rounds_played}")
+
+
