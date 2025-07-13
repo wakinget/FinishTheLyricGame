@@ -3,6 +3,7 @@ from tkinter import messagebox
 from datetime import datetime
 from Game.controller import get_random_lyric, check_guess
 from Utils.score_logger import plot_game_summary, log_game_result
+from Utils.rule_loader import load_game_rules
 
 
 class LyricGameGUI:
@@ -12,9 +13,7 @@ class LyricGameGUI:
         self.score = 0
         self.rounds_played = 0
         self.round_scores = []  # Tracks score each round
-
-        # Config
-        self.show_answer = True
+        self.rules = load_game_rules()
 
         self.current_lyric = None
 
@@ -74,7 +73,7 @@ class LyricGameGUI:
             messagebox.showinfo("Result", "Correct!")
         else:
             score_this_round = 0
-            if self.show_answer:
+            if self.rules.get("show_answer", True):
                 messagebox.showwarning("Result", f"Incorrect! The correct answer was:\n\n{correct_answer}")
             else:
                 messagebox.showwarning("Result", "Incorrect!")
