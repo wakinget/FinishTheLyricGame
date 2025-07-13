@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
 from Game.controller import get_random_lyric, check_guess
+from Utils.score_logger import plot_game_summary
 
 class LyricGameGUI:
     def __init__(self, root):
@@ -9,6 +10,10 @@ class LyricGameGUI:
         self.root.title("Finish the Lyric")
         self.score = 0
         self.rounds_played = 0
+        self.round_scores = []  # Tracks score each round
+
+        # Config
+        self.show_answer = True
 
         self.current_lyric = None
 
@@ -48,7 +53,10 @@ class LyricGameGUI:
         summary = f"Game Over!\n\nFinal Score: {self.score}\nRounds Played: {self.rounds_played}"
         messagebox.showinfo("Game Summary", summary)
 
-        # TODO: Log to CSV and generate chart
+        if self.round_scores:
+            plot_game_summary(self.round_scores)
+
+        # TODO: Log to CSV
 
     def load_new_lyric(self):
         self.current_lyric = get_random_lyric()
@@ -60,12 +68,20 @@ class LyricGameGUI:
         user_guess = self.entry.get()
         correct_answer = self.current_lyric['next_line']
 
-        if check_guess(user_guess, correct_answer):
-            self.score += 5
+        result = check_guess(user_guess, correct_answer)
+        if result:
+            score_this_round = 5
             messagebox.showinfo("Result", "Correct!")
         else:
-            messagebox.showwarning("Result", f"Incorrect. The correct answer was:\n\n{correct_answer}")
+            score_this_round = 0
+            if self.show_answer:
+                messagebox.showwarning("Result", f"Incorrect! The correct answer was:\n\n{correct_answer}")
+            else:
+                messagebox.showwarning("Result", "Incorrect!")
 
+        # Updates
+        self.score += score_this_round
+        self.round_scores.append(score_this_round)
         self.rounds_played += 1
         self.update_score_labels()
 
