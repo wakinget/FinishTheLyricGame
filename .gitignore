@@ -17,3 +17,7 @@ dist/
 # Virtual Environments
 venv/
 .env/
+
+
+# CSV files
+*.csv

@@ -1,5 +1,21 @@
-import matplotlib.pyplot as plt
+import csv
 from datetime import datetime
+import os
+import matplotlib.pyplot as plt
+
+
+LOG_FILE = "../Game/config/highscores.csv"
+def log_game_result(score: int, rounds: int):
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    new_row = [timestamp, rounds, score]
+
+    file_exists = os.path.exists(LOG_FILE)
+
+    with open(LOG_FILE, mode='a', newline='') as file:
+        writer = csv.writer(file)
+        if not file_exists:
+            writer.writerow(["timestamp", "rounds", "score"])  # header
+        writer.writerow(new_row)
 
 def plot_game_summary(round_scores):
     total_score = sum(round_scores)

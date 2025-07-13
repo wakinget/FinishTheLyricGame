@@ -2,7 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
 from Game.controller import get_random_lyric, check_guess
-from Utils.score_logger import plot_game_summary
+from Utils.score_logger import plot_game_summary, log_game_result
+
 
 class LyricGameGUI:
     def __init__(self, root):
@@ -55,8 +56,7 @@ class LyricGameGUI:
 
         if self.round_scores:
             plot_game_summary(self.round_scores)
-
-        # TODO: Log to CSV
+            log_game_result(self.score, self.rounds_played)
 
     def load_new_lyric(self):
         self.current_lyric = get_random_lyric()
