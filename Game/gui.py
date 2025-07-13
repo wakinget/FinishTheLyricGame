@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
+from datetime import datetime
 from Game.controller import get_random_lyric, check_guess
 
 class LyricGameGUI:
@@ -29,6 +30,25 @@ class LyricGameGUI:
 
         self.next_button = tk.Button(root, text="Next Lyric", command=self.load_new_lyric)
         self.next_button.pack(pady=5)
+
+        self.new_game_button = tk.Button(root, text="Start New", command=self.start_new_game)
+        self.new_game_button.pack(pady=5)
+
+        self.end_game_button = tk.Button(root, text="End Game", command=self.end_game)
+        self.end_game_button.pack(pady=5)
+
+    def start_new_game(self):
+        self.score = 0
+        self.rounds_played = 0
+        self.update_score_labels()
+        self.lyric_label.config(text="Click 'Next' to begin!")
+        self.entry.delete(0, tk.END)
+
+    def end_game(self):
+        summary = f"Game Over!\n\nFinal Score: {self.score}\nRounds Played: {self.rounds_played}"
+        messagebox.showinfo("Game Summary", summary)
+
+        # TODO: Log to CSV and generate chart
 
     def load_new_lyric(self):
         self.current_lyric = get_random_lyric()
