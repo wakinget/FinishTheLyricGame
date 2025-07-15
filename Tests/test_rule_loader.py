@@ -1,8 +1,24 @@
+"""
+test_rule_loader.py
+
+Unit tests for the rule_loader module. These tests verify that:
+- Game rules are correctly loaded from a JSON file
+- Missing files raise the appropriate error
+"""
+
 import json
 from Utils.rule_loader import load_game_rules
 
+
 def test_load_game_rules_reads_valid_json(tmp_path):
-    # Arrange: Create temporary game_rules.json
+    """
+    Test that load_game_rules() correctly loads a well-formed JSON file
+    and returns a dictionary with the expected key-value pairs.
+
+    Args:
+        tmp_path (pathlib.Path): A pytest fixture that provides a temporary directory.
+    """
+    # Arrange: Create a temporary game_rules.json with test data
     test_data = {"show_answer": False, "points_per_correct": 10}
     json_path = tmp_path / "game_rules.json"
     with open(json_path, "w") as f:
@@ -11,13 +27,21 @@ def test_load_game_rules_reads_valid_json(tmp_path):
     # Act: Load from that custom path
     result = load_game_rules(path=json_path)
 
-    # Assert
+    # Assert: Values match what was written
     assert isinstance(result, dict)
     assert result["show_answer"] is False
     assert result["points_per_correct"] == 10
 
+
 def test_load_game_rules_missing_file(tmp_path):
-    # Arrange: Point to a path that doesn't exist
+    """
+    Test that load_game_rules() raises a FileNotFoundError
+    when the specified JSON path does not exist.
+
+    Args:
+        tmp_path (pathlib.Path): A pytest fixture that provides a temporary directory.
+    """
+    # Arrange: Define a path that does not point to any file
     missing_path = tmp_path / "nonexistent.json"
 
     # Act & Assert
@@ -26,4 +50,3 @@ def test_load_game_rules_missing_file(tmp_path):
         assert False, "Expected FileNotFoundError"
     except FileNotFoundError:
         assert True
-
