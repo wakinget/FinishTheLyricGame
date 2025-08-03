@@ -125,6 +125,57 @@ Tests are located in the `/tests` directory and cover:
 
 ---
 
+# 📦 DeckBuilder Tool
+
+The `DeckBuilder` GUI is a standalone tool for creating lyric guessing decks based on Genius lyrics. It allows you to:
+
+- 🔍 Search for songs using the Genius API
+- 📄 View and select lyrics line-by-line
+- ✍️ Manually define prompt → answer pairs
+- 🧾 Save and load decks as CSV
+- 🖋 Edit or delete deck entries
+- 📅 Capture metadata like release year and album
+
+## 🔧 Setup
+
+1. Make sure you have a `.env` file in the root of your project with your Genius API token:
+
+   ```env
+   GENIUS_API_KEY=your_access_token_here
+   ```
+
+2. Install required dependencies:
+
+   ```bash
+   pip install lyricsgenius python-dotenv
+   ```
+
+3. Then run the GUI with:
+
+   ```bash
+   python -m DeckBuilder
+   ```
+
+> This will launch a Tkinter-based interface for building decks.
+
+## 🗂 CSV Format
+
+Each row in your exported deck file will look like:
+
+| lyric_snippet | next_line | song_title | artist | release_year | album |
+|---------------|-----------|------------|--------|---------------|--------|
+
+You can re-import this file at any time to continue editing.
+
+
+
+
+
+
+
+
+
+
 ## 🛣 Roadmap
 
 Planned features include:
