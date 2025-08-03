@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
+import csv
 from DeckBuilder.genius_api import search_general, search_song
 
 class DeckBuilderApp:
@@ -39,9 +40,6 @@ class DeckBuilderApp:
         scrollbar.pack(side="right", fill="y")
         self.results_listbox.config(yscrollcommand=scrollbar.set)
 
-        self.add_btn = ttk.Button(self.root, text="+ Add to Deck", command=self.add_selected_to_deck)
-        self.add_btn.pack(pady=5)
-
     def _build_lyric_viewer(self):
         frame = ttk.LabelFrame(self.root, text="Lyrics Viewer")
         frame.pack(fill="both", expand=True, padx=10, pady=10)
@@ -74,10 +72,23 @@ class DeckBuilderApp:
 
         self.deck_listbox = tk.Listbox(frame, height=10)
         self.deck_listbox.pack(side="left", fill="both", expand=True)
+        self.deck_listbox.bind("<<ListboxSelect>>", self.on_deck_select)
 
         scrollbar = ttk.Scrollbar(frame, orient="vertical", command=self.deck_listbox.yview)
         scrollbar.pack(side="right", fill="y")
         self.deck_listbox.config(yscrollcommand=scrollbar.set)
+
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(fill="x", pady=5)
+
+        edit_btn = ttk.Button(btn_frame, text="Edit Selected", command=self.edit_selected_entry)
+        edit_btn.pack(side="left", padx=5)
+
+        delete_btn = ttk.Button(btn_frame, text="Delete Selected", command=self.delete_selected_entry)
+        delete_btn.pack(side="left", padx=5)
+
+        export_btn = ttk.Button(btn_frame, text="Export to CSV", command=self.export_to_csv)
+        export_btn.pack(side="right", padx=5)
 
     def perform_search(self):
         query = self.search_var.get()
@@ -118,19 +129,13 @@ class DeckBuilderApp:
         title = self.selected_song['title']
         artist = self.selected_song['artist']
         song = search_song(title, artist)
+        if song:
+            self.selected_song['release_year'] = getattr(song, 'release_year', '')
+            self.selected_song['album'] = getattr(song.album, 'name', '') if hasattr(song, 'album') else ''
         if song and song.lyrics:
             self.lyrics_text.insert("1.0", song.lyrics)
         else:
             self.lyrics_text.insert("1.0", "Lyrics not found.")
-
-    def add_selected_to_deck(self):
-        if not hasattr(self, 'selected_song'):
-            messagebox.showwarning("No Selection", "Please select a song first.")
-            return
-
-        title = self.selected_song['title']
-        artist = self.selected_song['artist']
-        self.deck_listbox.insert(tk.END, f"{title} — {artist}")
 
     def store_snippet_pair(self):
         if not hasattr(self, 'selected_song'):
@@ -147,16 +152,76 @@ class DeckBuilderApp:
         entry = {
             "song_title": self.selected_song['title'],
             "artist": self.selected_song['artist'],
-            "prompt": prompt,
-            "answer": answer
+            "lyric_snippet": prompt,
+            "next_line": answer,
+            "release_year": self.selected_song.get('release_year', ''),
+            "album": self.selected_song.get('album', '')
         }
         self.deck_entries.append(entry)
-        display_text = f"{entry['song_title']} — {entry['prompt']} → {entry['answer']}"
+        display_text = f"{entry['song_title']} — {entry['lyric_snippet']} → {entry['next_line']}"
         self.deck_listbox.insert(tk.END, display_text)
 
-        # Clear input fields
         self.prompt_entry.delete("1.0", tk.END)
         self.answer_entry.delete("1.0", tk.END)
+
+    def on_deck_select(self, event):
+        selection = self.deck_listbox.curselection()
+        if not selection:
+            return
+        index = selection[0]
+        entry = self.deck_entries[index]
+        self.prompt_entry.delete("1.0", tk.END)
+        self.answer_entry.delete("1.0", tk.END)
+        self.prompt_entry.insert("1.0", entry['lyric_snippet'])
+        self.answer_entry.insert("1.0", entry['next_line'])
+
+    def edit_selected_entry(self):
+        selection = self.deck_listbox.curselection()
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select an entry to edit.")
+            return
+
+        index = selection[0]
+        new_prompt = self.prompt_entry.get("1.0", tk.END).strip()
+        new_answer = self.answer_entry.get("1.0", tk.END).strip()
+
+        if not new_prompt or not new_answer:
+            messagebox.showwarning("Missing Input", "Please provide both a prompt and an answer.")
+            return
+
+        self.deck_entries[index]['lyric_snippet'] = new_prompt
+        self.deck_entries[index]['next_line'] = new_answer
+
+        display_text = f"[EDITED] {self.deck_entries[index]['song_title']} — {new_prompt} → {new_answer}"
+        self.deck_listbox.delete(index)
+        self.deck_listbox.insert(index, display_text)
+
+    def delete_selected_entry(self):
+        selection = self.deck_listbox.curselection()
+        if not selection:
+            messagebox.showwarning("No Selection", "Please select an entry to delete.")
+            return
+        index = selection[0]
+        self.deck_listbox.delete(index)
+        del self.deck_entries[index]
+
+    def export_to_csv(self):
+        if not self.deck_entries:
+            messagebox.showinfo("No Data", "There is nothing to export.")
+            return
+
+        file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, mode="w", newline="", encoding="utf-8") as f:
+                writer = csv.DictWriter(f, fieldnames=["lyric_snippet", "next_line", "song_title", "artist", "release_year", "album"])
+                writer.writeheader()
+                writer.writerows(self.deck_entries)
+            messagebox.showinfo("Export Successful", f"Deck exported to {file_path}")
+        except Exception as e:
+            messagebox.showerror("Export Failed", str(e))
 
 if __name__ == "__main__":
     root = tk.Tk()
