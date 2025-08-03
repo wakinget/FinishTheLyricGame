@@ -88,6 +88,8 @@ class DeckBuilderApp:
         delete_btn.pack(side="left", padx=5)
 
         export_btn = ttk.Button(btn_frame, text="Export to CSV", command=self.export_to_csv)
+        import_btn = ttk.Button(btn_frame, text="Import from CSV", command=self.import_from_csv)
+        import_btn.pack(side="right", padx=5)
         export_btn.pack(side="right", padx=5)
 
     def perform_search(self):
@@ -131,7 +133,7 @@ class DeckBuilderApp:
         song = search_song(title, artist)
         if song:
             self.selected_song['release_year'] = getattr(song, 'release_year', '')
-            self.selected_song['album'] = getattr(song.album, 'name', '') if hasattr(song, 'album') else ''
+            self.selected_song['album'] = getattr(song.album, 'name', '') if hasattr(song, 'album') and song.album else ''
         if song and song.lyrics:
             self.lyrics_text.insert("1.0", song.lyrics)
         else:
@@ -204,6 +206,22 @@ class DeckBuilderApp:
         index = selection[0]
         self.deck_listbox.delete(index)
         del self.deck_entries[index]
+
+    def import_from_csv(self):
+        file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+        if not file_path:
+            return
+
+        try:
+            with open(file_path, mode="r", newline="", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    self.deck_entries.append(row)
+                    display_text = f"{row['song_title']} — {row['lyric_snippet']} → {row['next_line']}"
+                    self.deck_listbox.insert(tk.END, display_text)
+            messagebox.showinfo("Import Successful", f"Deck imported from {file_path}")
+        except Exception as e:
+            messagebox.showerror("Import Failed", str(e))
 
     def export_to_csv(self):
         if not self.deck_entries:

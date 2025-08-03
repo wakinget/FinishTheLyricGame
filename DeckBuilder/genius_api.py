@@ -16,7 +16,7 @@ genius.remove_section_headers = True
 genius.skip_non_songs = True
 genius.excluded_terms = ["(Remix)", "(Live)"]
 
-def search_general(query, max_songs=10):
+def search_general(query, max_songs=20):
     """
     Search for songs using a general query.
 
@@ -55,11 +55,10 @@ def search_song(title, artist=None):
                 song.release_year = ""
 
             # Extract album name if available
-            song.album = getattr(song, 'album', {}).get('name', '') if hasattr(song, 'album') and song.album else ""
+            song.album = song.album.name if hasattr(song, 'album') and hasattr(song.album, 'name') else ""
 
             return song
         return None
-
 
     except Exception as e:
         print(f"Failed to fetch song: {e}")
